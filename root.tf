@@ -322,7 +322,7 @@ module "ecr_update_keycloak_repository" {
 
 module "ecr_collector_repository" {
   source           = "./tdr-terraform-modules/ecr"
-  name             = "thanh-collector"
+  name             = "transfer-frontend-collector"
   image_source_url = "https://github.com/nationalarchives/tdr-transfer-frontend/blob/Thanh-test-xray-logging/Dockerfile-collector"
   policy_name      = "transfer_frontend_policy"
   policy_variables = {
