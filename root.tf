@@ -320,6 +320,19 @@ module "ecr_update_keycloak_repository" {
   common_tags = local.common_tags
 }
 
+module "ecr_collector_repository" {
+  source           = "./tdr-terraform-modules/ecr"
+  name             = "thanh-collector"
+  image_source_url = "https://github.com/nationalarchives/tdr-transfer-frontend/blob/Thanh-test-xray-logging/Dockerfile-collector"
+  policy_name      = "transfer_frontend_policy"
+  policy_variables = {
+    intg_account    = data.aws_ssm_parameter.intg_account_number.value,
+    staging_account = data.aws_ssm_parameter.staging_account_number.value,
+    prod_account    = data.aws_ssm_parameter.prod_account_number.value
+  }
+  common_tags = local.common_tags
+}
+
 module "ecr_image_scan_log_group" {
   source      = "./tdr-terraform-modules/cloudwatch_logs"
   name        = "/aws/events/ecr-image-scans"
