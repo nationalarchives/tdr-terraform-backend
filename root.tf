@@ -272,6 +272,19 @@ module "ecr_transfer_frontend_repository" {
   common_tags = local.common_tags
 }
 
+module "ecr_collector_repository" {
+  source           = "./tdr-terraform-modules/ecr"
+  name             = "transfer-frontend-collector"
+  image_source_url = "https://github.com/nationalarchives/tdr-transfer-frontend/blob/master/Dockerfile-collector"
+  policy_name      = "transfer_frontend_policy"
+  policy_variables = {
+    intg_account    = data.aws_ssm_parameter.intg_account_number.value,
+    staging_account = data.aws_ssm_parameter.staging_account_number.value,
+    prod_account    = data.aws_ssm_parameter.prod_account_number.value
+  }
+  common_tags = local.common_tags
+}
+
 module "ecr_auth_server_repository" {
   source           = "./tdr-terraform-modules/ecr"
   name             = "auth-server"
@@ -312,19 +325,6 @@ module "ecr_update_keycloak_repository" {
   name             = "keycloak-update"
   image_source_url = "https://github.com/nationalarchives/tdr-auth-server/blob/master/Dockerfile-update"
   policy_name      = "keycloak_update_policy"
-  policy_variables = {
-    intg_account    = data.aws_ssm_parameter.intg_account_number.value,
-    staging_account = data.aws_ssm_parameter.staging_account_number.value,
-    prod_account    = data.aws_ssm_parameter.prod_account_number.value
-  }
-  common_tags = local.common_tags
-}
-
-module "ecr_collector_repository" {
-  source           = "./tdr-terraform-modules/ecr"
-  name             = "transfer-frontend-collector"
-  image_source_url = "https://github.com/nationalarchives/tdr-transfer-frontend/blob/Thanh-test-xray-logging/Dockerfile-collector"
-  policy_name      = "transfer_frontend_policy"
   policy_variables = {
     intg_account    = data.aws_ssm_parameter.intg_account_number.value,
     staging_account = data.aws_ssm_parameter.staging_account_number.value,
