@@ -261,8 +261,8 @@ module "ecr_consignment_api_repository" {
 
 module "ecr_transfer_frontend_repository" {
   source           = "./tdr-terraform-modules/ecr"
-  name             = "aws-otel-collector"
-  image_source_url = "https://github.com/nationalarchives/tdr-xray-logging/blob/main/Dockerfile"
+  name             = "transfer-frontend"
+  image_source_url = "https://github.com/nationalarchives/tdr-transfer-frontend/blob/master/Dockerfile"
   policy_name      = "transfer_frontend_policy"
   policy_variables = {
     intg_account    = data.aws_ssm_parameter.intg_account_number.value,
@@ -274,8 +274,8 @@ module "ecr_transfer_frontend_repository" {
 
 module "ecr_collector_repository" {
   source           = "./tdr-terraform-modules/ecr"
-  name             = "transfer-frontend-collector"
-  image_source_url = "https://github.com/nationalarchives/tdr-transfer-frontend/blob/master/Dockerfile-collector"
+  name             = "aws-otel-collector"
+  image_source_url = "https://github.com/nationalarchives/tdr-xray-logging/blob/main/Dockerfile"
   policy_name      = "transfer_frontend_policy"
   policy_variables = {
     intg_account    = data.aws_ssm_parameter.intg_account_number.value,
