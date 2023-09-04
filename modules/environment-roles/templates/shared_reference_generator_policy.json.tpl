@@ -10,7 +10,7 @@
       "Resource": [
         "arn:aws:iam::${account_id}:policy/DaReferenceCounterTableAccessPolicy${title(environment)}",
         "arn:aws:iam::${account_id}:role/da*",
-        "arn:aws:iam::${account_id}:role/TDRTerraformRole${title(environment)}"
+        "arn:aws:iam::${account_id}:policy/DAReferenceGeneratorLambdaPolicy${title(environment)}"
       ]
     }
   ]
