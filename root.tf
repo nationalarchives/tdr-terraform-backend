@@ -272,9 +272,9 @@ module "ecr_draft_metadata_validator_repository" {
   repository_name  = "draft-metadata-validator"
   image_source_url = "https://github.com/nationalarchives/tdr-draft-metadata-validator/blob/main/Dockerfile"
   allowed_principals = [
-    "arn:aws:iam::${data.aws_ssm_parameter.intg_account_number.value}:role/tdr-draft-metadata-validator-intg",
-    "arn:aws:iam::${data.aws_ssm_parameter.staging_account_number.value}:role/tdr-draft-metadata-validator-staging",
-    "arn:aws:iam::${data.aws_ssm_parameter.prod_account_number.value}:role/tdr-draft-metadata-validator-prod"
+    "arn:aws:iam::${data.aws_ssm_parameter.intg_account_number.value}:role/tdr-draft-metadata-validator-intg-role",
+    "arn:aws:iam::${data.aws_ssm_parameter.staging_account_number.value}:role/tdr-draft-metadata-validator-staging-role",
+    "arn:aws:iam::${data.aws_ssm_parameter.prod_account_number.value}:role/tdr-draft-metadata-validator-prod-role"
   ]
   common_tags = local.common_tags
 }
