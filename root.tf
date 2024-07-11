@@ -271,11 +271,51 @@ module "ecr_draft_metadata_validator_repository" {
   source           = "./da-terraform-modules/ecr"
   repository_name  = "draft-metadata-validator"
   image_source_url = "https://github.com/nationalarchives/tdr-draft-metadata-validator/blob/main/Dockerfile"
-  allowed_principals = [
-    "arn:aws:iam::${data.aws_ssm_parameter.intg_account_number.value}:role/tdr-draft-metadata-validator-intg-role",
-    "arn:aws:iam::${data.aws_ssm_parameter.staging_account_number.value}:role/tdr-draft-metadata-validator-staging-role",
-    "arn:aws:iam::${data.aws_ssm_parameter.prod_account_number.value}:role/tdr-draft-metadata-validator-prod-role"
-  ]
+  repository_policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Sid" : "AllowPushPull",
+        "Effect" : "Allow",
+        "Principal" : {
+          "AWS" : [
+            "arn:aws:iam::${data.aws_ssm_parameter.staging_account_number.value}:root",
+            "arn:aws:iam::${data.aws_ssm_parameter.prod_account_number.value}:root",
+            "arn:aws:iam::${data.aws_ssm_parameter.intg_account_number.value}:root"
+          ]
+        },
+        "Action" : [
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:BatchGetImage",
+          "ecr:CompleteLayerUpload",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:InitiateLayerUpload",
+          "ecr:PutImage",
+          "ecr:UploadLayerPart"
+        ]
+      },
+      {
+        "Sid" : "LambdaECRImageCrossAccountRetrievalPolicy",
+        "Effect" : "Allow",
+        "Principal" : {
+          "Service" : "lambda.amazonaws.com"
+        },
+        "Action" : [
+          "ecr:BatchGetImage",
+          "ecr:GetDownloadUrlForLayer"
+        ],
+        "Condition" : {
+          "ForAnyValue:StringLike" : {
+            "aws:sourceARN" : [
+              "arn:aws:lambda:eu-west-2:${data.aws_ssm_parameter.staging_account_number.value}:function:*",
+              "arn:aws:lambda:eu-west-2:${data.aws_ssm_parameter.intg_account_number.value}:function:*",
+              "arn:aws:lambda:eu-west-2:${data.aws_ssm_parameter.prod_account_number.value}:function:*"
+            ]
+          }
+        }
+      }
+    ]
+  })
   common_tags = local.common_tags
 }
 
