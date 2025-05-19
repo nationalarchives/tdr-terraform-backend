@@ -126,8 +126,3 @@ resource "aws_iam_policy" "custodian_get_parameters" {
   description = "Policy to allow Cloud Custodian to get SSM parameters"
   policy      = data.aws_iam_policy_document.custodian_get_parameters.json
 }
-
-resource "aws_iam_policy" "jenkins_lambda_deploy_policy" {
-  name   = "TDRJenkinsNodeLambdaPolicy${title(var.environment)}"
-  policy = templatefile("${path.module}/templates/jenkins_lambda_deploy_policy.json.tpl", { account_id = var.management_account_number, environment = var.environment })
-}

@@ -26,11 +26,6 @@ data "aws_iam_policy_document" "ecs_assume_role" {
   }
 }
 
-resource "aws_iam_policy" "jenkins_run_ssm_policy" {
-  name   = "TDRJenkinsRunSsmPolicy${local.env_title_case}"
-  policy = templatefile("${path.module}/templates/jenkins_assume_role.json.tpl", { account_id = var.tdr_account_number, role_name = "TDRJenkinsRunDocumentRole${local.env_title_case}" })
-}
-
 //IAM Policies: TDR Terraform Backend Permissions
 
 data "aws_iam_policy_document" "write_terraform_state_bucket" {
