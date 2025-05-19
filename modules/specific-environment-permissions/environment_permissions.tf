@@ -2,6 +2,8 @@ locals {
   env_title_case = title(var.tdr_environment)
 }
 
+data "aws_caller_identity" "current" {}
+
 //IAM Roles: Jenkins Nodes Assume Roles
 
 data "aws_iam_policy_document" "ecs_assume_role" {
@@ -15,12 +17,20 @@ data "aws_iam_policy_document" "ecs_assume_role" {
       type        = "Service"
       identifiers = ["ecs-tasks.amazonaws.com"]
     }
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
+    }
   }
 }
 
 resource "aws_iam_role" "jenkins_run_ssm_role" {
-  name               = "TDRJenkinsRunSsmRole${local.env_title_case}"
-  assume_role_policy = templatefile("${path.module}/templates/ecs_assume_role_policy.json.tpl", {})
+  name = "TDRJenkinsRunSsmRole${local.env_title_case}"
+  assume_role_policy = templatefile("${path.module}/templates/ecs_assume_role_policy.json.tpl", {
+    account_id = data.aws_caller_identity.current.account_id
+  })
 }
 
 resource "aws_iam_policy" "jenkins_run_ssm_policy" {
