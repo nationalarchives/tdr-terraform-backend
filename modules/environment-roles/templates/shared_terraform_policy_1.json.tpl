@@ -105,6 +105,7 @@
         "logs:*",
         "rds:*",
         "route53:*",
+        "route53resolver:*",
         "s3:*",
         "securityhub:*",
         "ses:*",
@@ -122,11 +123,7 @@
         "wafv2:*",
         "secretsmanager:CreateSecret",
         "secretsmanager:TagResource",
-        "organizations:DescribeOrganization",
-        "route53resolver:*ResolverQueryLog*",
-        "route53resolver:TagResource",
-        "route53resolver:UntagResource",
-        "route53resolver:ListTagsForResource"
+        "organizations:DescribeOrganization"
       ],
       "Resource": "*"
     }
