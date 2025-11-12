@@ -123,6 +123,14 @@
         "wafv2:*",
         "secretsmanager:CreateSecret",
         "secretsmanager:TagResource",
+        "secretsmanager:DeleteSecret",
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:GetResourcePolicy",
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:PutSecretValue",
+        "secretsmanager:TagResource",
+        "secretsmanager:UntagResource",
+        "secretsmanager:UpdateSecret",
         "organizations:DescribeOrganization"
       ],
       "Resource": "*"
