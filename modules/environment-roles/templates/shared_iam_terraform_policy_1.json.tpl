@@ -19,7 +19,8 @@
          "arn:aws:iam::${account_id}:role/TDRTransferServiceECSExecutionRole${title(environment)}",
          "arn:aws:iam::${account_id}:role/TDRTransferServiceProcessDataload${title(environment)}-role",
          "arn:aws:iam::${account_id}:role/TDRCreateDbUsersKeycloakRole${title(environment)}",
-         "arn:aws:iam::${account_id}:policy/TDRCreateDbUsersKeycloakPolicy${title(environment)}"
+         "arn:aws:iam::${account_id}:policy/TDRCreateDbUsersKeycloakPolicy${title(environment)}",
+         "arn:aws:iam::${account_id}:policy/wiz-secrets-access-policy-${environment}"
        ]
     }
   ]

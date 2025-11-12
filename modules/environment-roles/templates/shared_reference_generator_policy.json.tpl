@@ -11,8 +11,7 @@
         "arn:aws:iam::${account_id}:policy/DAReferenceGeneratorLambdaPolicy${title(environment)}",
         "arn:aws:iam::${account_id}:policy/da-reference-generator-${environment}-vpc-policy",
         "arn:aws:iam::${account_id}:policy/DaReferenceCounterTableAccessPolicy${title(environment)}",
-        "arn:aws:iam::${account_id}:role/da*",
-        "arn:aws:iam::${account_id}:policy/wiz-secrets-access-policy-${environment}"
+        "arn:aws:iam::${account_id}:role/da*"
       ]
     }
   ]
