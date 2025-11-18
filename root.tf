@@ -446,7 +446,7 @@ module "terraform_state_bucket_kms_key" {
       data.aws_ssm_parameter.mgmt_admin_role.value
     ]
     user_roles_decoupled = [local.aws_backup_local_role_arn]
-    ci_roles   = [data.aws_ssm_parameter.mgmt_admin_role.value]
+    ci_roles             = [data.aws_ssm_parameter.mgmt_admin_role.value]
     service_details = [
       {
         service_name : "cloudwatch"
