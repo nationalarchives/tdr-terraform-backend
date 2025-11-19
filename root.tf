@@ -11,12 +11,7 @@ locals {
   github_tdr_antivirus_repository          = "repo:nationalarchives/tdr-antivirus:*"
   github_da_reference_generator_repository = "repo:nationalarchives/da-reference-generator:*"
 
-  terraform_state_bucket_access_roles = [
-    module.github_terraform_assume_role_intg.role.arn, module.github_terraform_assume_role_staging.role.arn,
-    module.github_terraform_assume_role_prod.role.arn, data.aws_ssm_parameter.mgmt_admin_role.value, local.aws_backup_local_role_arn
-  ]
-
-  aws_backup_role_name      = module.aws_backup_configuration.terraform_config["local_account_backup_role_name"]
+  aws_backup_role_name      = module.tdr_configuration.terraform_config.mgmt["local_account_backup_role_name"]
   aws_backup_tag            = module.tdr_configuration.terraform_config["aws_backup_daily_short_term_retain_tag"]
   aws_backup_local_role_arn = "arn:aws:iam::${data.aws_ssm_parameter.mgmt_account_number.value}:role/${local.aws_backup_role_name}"
 }
@@ -444,8 +439,14 @@ module "terraform_state_bucket_kms_key" {
   key_name = "tdr-terraform-state-mgmt"
   tags     = local.common_tags
   default_policy_variables = {
-    user_roles = local.terraform_state_bucket_access_roles
-    ci_roles   = [data.aws_ssm_parameter.mgmt_admin_role.value]
+    user_roles = [
+      module.github_terraform_assume_role_intg.role.arn,
+      module.github_terraform_assume_role_staging.role.arn,
+      module.github_terraform_assume_role_prod.role.arn,
+      data.aws_ssm_parameter.mgmt_admin_role.value
+    ]
+    user_roles_decoupled = [local.aws_backup_local_role_arn]
+    ci_roles             = [data.aws_ssm_parameter.mgmt_admin_role.value]
     service_details = [
       {
         service_name : "cloudwatch"
