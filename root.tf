@@ -462,3 +462,13 @@ module "terraform_state_bucket_kms_encryption_policy" {
   policy_string = templatefile("${path.module}/templates/iam_policy/state_bucket_encryption_policy.json.tpl", { kms_key_arn = module.terraform_state_bucket_kms_key.kms_key_arn })
   tags          = local.common_tags
 }
+
+# TDRD-960 - This is the tdr-account-mgmt key that was in the aws-account repo
+module "encryption_key" {
+  source      = "./tdr-terraform-modules/kms"
+  project     = "tdr"
+  environment = "mgmt"
+  common_tags = local.common_tags
+  function    = "account"
+  key_policy  = "cloudtrail"
+}
