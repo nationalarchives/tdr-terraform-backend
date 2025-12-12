@@ -512,4 +512,11 @@ module "account_key_prod" {
   }
 }
 
+# TDRD-960 imported iam_group module from defunct tdr-aws-accounts
+module "iam_group" {
+  source            = "./tdr-terraform-modules/iam_group"
+  aws_account_level = true
+  environment       = "mgmt"
+}
+
 
