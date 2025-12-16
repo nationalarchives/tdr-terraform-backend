@@ -52,3 +52,25 @@ import {
   to = module.iam_group.aws_iam_group_policy_attachment.support_policy_attach[0]
   id = "support/arn:aws:iam::aws:policy/AWSSupportAccess"
 }
+
+import {
+  to = aws_route53_zone.tdr_tna_mgmt
+  id = "ZHG2WE9FYKLQP"
+}
+
+import {
+  to = aws_route53_zone.tdr_tna_intg
+  id = "Z3ELHLNXIFL3A7"
+}
+
+import {
+  to = aws_route53_zone.tdr_tna_staging
+  id = "Z279ESODYUVS9I"
+}
+
+import {
+  to = aws_route53_zone.tdr_tna_prod
+  id = "ZXK6EX3EB0MOA"
+}
+
+

@@ -519,4 +519,28 @@ module "iam_group" {
   environment       = "mgmt"
 }
 
+# TDRD-960 import DNS Zone to a resource rather than /tdr-terraform-modules/route53 which is too complex
+resource "aws_route53_zone" "tdr_tna_mgmt" {
+  name = "tdr-management.nationalarchives.gov.uk"
+  tags = local.common_tags
+}
+
+resource "aws_route53_zone" "tdr_tna_intg" {
+  name     = "tdr-integration.nationalarchives.gov.uk"
+  tags     = local.common_tags
+  provider = aws.intg
+}
+
+resource "aws_route53_zone" "tdr_tna_staging" {
+  name     = "tdr-staging.nationalarchives.gov.uk"
+  tags     = local.common_tags
+  provider = aws.staging
+}
+
+resource "aws_route53_zone" "tdr_tna_prod" {
+  name     = "tdr.nationalarchives.gov.uk"
+  tags     = local.common_tags
+  provider = aws.prod
+}
+
 
