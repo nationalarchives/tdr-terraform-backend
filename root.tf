@@ -463,55 +463,6 @@ module "terraform_state_bucket_kms_encryption_policy" {
   tags          = local.common_tags
 }
 
-# TDRD-960 - This is the tdr-account-{mgmt,intg,staging,prod} key that was in the aws-account repo
-module "account_key" {
-  source      = "./tdr-terraform-modules/kms"
-  project     = "tdr"
-  environment = "mgmt"
-  common_tags = local.common_tags
-  function    = "account"
-  key_policy  = "cloudtrail"
-}
-
-module "account_key_intg" {
-  source      = "./tdr-terraform-modules/kms"
-  project     = "tdr"
-  environment = "intg"
-  common_tags = local.common_tags
-  function    = "account"
-  key_policy  = "cloudtrail"
-
-  providers = {
-    aws = aws.intg
-  }
-}
-
-module "account_key_staging" {
-  source      = "./tdr-terraform-modules/kms"
-  project     = "tdr"
-  environment = "staging"
-  common_tags = local.common_tags
-  function    = "account"
-  key_policy  = "cloudtrail"
-
-  providers = {
-    aws = aws.staging
-  }
-}
-
-module "account_key_prod" {
-  source      = "./tdr-terraform-modules/kms"
-  project     = "tdr"
-  environment = "prod"
-  common_tags = local.common_tags
-  function    = "account"
-  key_policy  = "cloudtrail"
-
-  providers = {
-    aws = aws.prod
-  }
-}
-
 # TDRD-960 imported iam_group module from defunct tdr-aws-accounts
 module "iam_group" {
   source            = "./tdr-terraform-modules/iam_group"
