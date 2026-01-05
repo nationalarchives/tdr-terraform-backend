@@ -168,21 +168,12 @@ module "terraform_state" {
   aws_backup_tag            = local.aws_backup_tag
 }
 
-//Set up Terraform Backend statelock
-module "terraform_state_lock" {
-  source = "./modules/state-lock"
-
-  common_tags = local.common_tags
-}
-
 //Set up common IAM policies for Terraform
 module "common_permissions" {
   source                         = "./modules/permissions"
   common_tags                    = local.common_tags
   terraform_state_bucket         = module.terraform_state.terraform_state_bucket_arn
-  terraform_state_lock           = module.terraform_state_lock.terraform_state_lock_arn
   terraform_scripts_state_bucket = module.terraform_state.terraform_scripts_state_bucket_arn
-  terraform_scripts_state_lock   = module.terraform_state_lock.terraform_scripts_state_lock_arn
   terraform_backend_state_bucket = data.aws_s3_bucket.state_bucket.arn
   terraform_github_state_bucket  = module.terraform_state.terraform_github_state_bucket_arn
   management_account_number      = data.aws_ssm_parameter.mgmt_account_number.value
