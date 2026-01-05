@@ -8,11 +8,6 @@ variable "terraform_state_bucket" {
   type        = string
 }
 
-variable "terraform_state_lock" {
-  description = "DynamoDb table controlling the terraform state lock"
-  type        = string
-}
-
 variable "terraform_github_state_bucket" {
   description = "S3 bucket storing the terraform github state for the different TDR AWS environments"
   type        = string
@@ -35,11 +30,6 @@ variable "tdr_environment" {
 
 variable "read_terraform_state_policy_arn" {
   description = "IAM policy ARN for reading Terraform state"
-  type        = string
-}
-
-variable "terraform_state_lock_access_arn" {
-  description = "IAM policy ARN for accessing Terraform state lock"
   type        = string
 }
 
