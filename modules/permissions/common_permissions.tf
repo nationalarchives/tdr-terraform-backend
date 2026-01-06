@@ -29,12 +29,6 @@ data "aws_iam_policy_document" "terraform_state_lock" {
   version = "2012-10-17"
 
   statement {
-    effect    = "Allow"
-    actions   = ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:DeleteItem"]
-    resources = [var.terraform_state_lock, var.terraform_scripts_state_lock]
-  }
-
-  statement {
     effect  = "Allow"
     actions = ["s3:DeleteObject"]
     resources = [

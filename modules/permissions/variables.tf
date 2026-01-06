@@ -13,16 +13,6 @@ variable "terraform_scripts_state_bucket" {
   type        = string
 }
 
-variable "terraform_state_lock" {
-  description = "DynamoDb table controlling the terraform state lock"
-  type        = string
-}
-
-variable "terraform_scripts_state_lock" {
-  description = "DynamoDb table controlling the TDR scripts terraform state lock"
-  type        = string
-}
-
 variable "terraform_backend_state_bucket" {
   description = "S3 bucket used for the backend state"
 }

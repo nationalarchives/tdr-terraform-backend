@@ -168,21 +168,12 @@ module "terraform_state" {
   aws_backup_tag            = local.aws_backup_tag
 }
 
-//Set up Terraform Backend statelock
-module "terraform_state_lock" {
-  source = "./modules/state-lock"
-
-  common_tags = local.common_tags
-}
-
 //Set up common IAM policies for Terraform
 module "common_permissions" {
   source                         = "./modules/permissions"
   common_tags                    = local.common_tags
   terraform_state_bucket         = module.terraform_state.terraform_state_bucket_arn
-  terraform_state_lock           = module.terraform_state_lock.terraform_state_lock_arn
   terraform_scripts_state_bucket = module.terraform_state.terraform_scripts_state_bucket_arn
-  terraform_scripts_state_lock   = module.terraform_state_lock.terraform_scripts_state_lock_arn
   terraform_backend_state_bucket = data.aws_s3_bucket.state_bucket.arn
   terraform_github_state_bucket  = module.terraform_state.terraform_github_state_bucket_arn
   management_account_number      = data.aws_ssm_parameter.mgmt_account_number.value
@@ -194,13 +185,11 @@ module "intg_specific_permissions" {
   source                                           = "./modules/specific-environment-permissions"
   common_tags                                      = local.common_tags
   terraform_state_bucket                           = module.terraform_state.terraform_state_bucket_arn
-  terraform_state_lock                             = module.terraform_state_lock.terraform_state_lock_arn
   terraform_github_state_bucket                    = module.terraform_state.terraform_github_state_bucket_arn
   tdr_account_number                               = data.aws_ssm_parameter.intg_account_number.value
   tdr_mgmt_account_number                          = data.aws_ssm_parameter.mgmt_account_number.value
   tdr_environment                                  = "intg"
   read_terraform_state_policy_arn                  = module.common_permissions.read_terraform_state_policy_arn
-  terraform_state_lock_access_arn                  = module.common_permissions.terraform_state_lock_access_arn
   terraform_describe_account_arn                   = module.common_permissions.terraform_describe_account_arn
   terraform_scripts_state_bucket                   = module.terraform_state.terraform_scripts_state_bucket_arn
   terraform_backend_state_bucket                   = data.aws_s3_bucket.state_bucket.arn
@@ -211,13 +200,11 @@ module "staging_specific_permissions" {
   source                                           = "./modules/specific-environment-permissions"
   common_tags                                      = local.common_tags
   terraform_state_bucket                           = module.terraform_state.terraform_state_bucket_arn
-  terraform_state_lock                             = module.terraform_state_lock.terraform_state_lock_arn
   terraform_github_state_bucket                    = module.terraform_state.terraform_github_state_bucket_arn
   tdr_account_number                               = data.aws_ssm_parameter.staging_account_number.value
   tdr_mgmt_account_number                          = data.aws_ssm_parameter.mgmt_account_number.value
   tdr_environment                                  = "staging"
   read_terraform_state_policy_arn                  = module.common_permissions.read_terraform_state_policy_arn
-  terraform_state_lock_access_arn                  = module.common_permissions.terraform_state_lock_access_arn
   terraform_describe_account_arn                   = module.common_permissions.terraform_describe_account_arn
   terraform_scripts_state_bucket                   = module.terraform_state.terraform_scripts_state_bucket_arn
   terraform_backend_state_bucket                   = data.aws_s3_bucket.state_bucket.arn
@@ -228,13 +215,11 @@ module "prod_specific_permissions" {
   source                                           = "./modules/specific-environment-permissions"
   common_tags                                      = local.common_tags
   terraform_state_bucket                           = module.terraform_state.terraform_state_bucket_arn
-  terraform_state_lock                             = module.terraform_state_lock.terraform_state_lock_arn
   terraform_github_state_bucket                    = module.terraform_state.terraform_github_state_bucket_arn
   tdr_account_number                               = data.aws_ssm_parameter.prod_account_number.value
   tdr_mgmt_account_number                          = data.aws_ssm_parameter.mgmt_account_number.value
   tdr_environment                                  = "prod"
   read_terraform_state_policy_arn                  = module.common_permissions.read_terraform_state_policy_arn
-  terraform_state_lock_access_arn                  = module.common_permissions.terraform_state_lock_access_arn
   terraform_describe_account_arn                   = module.common_permissions.terraform_describe_account_arn
   terraform_scripts_state_bucket                   = module.terraform_state.terraform_scripts_state_bucket_arn
   terraform_backend_state_bucket                   = data.aws_s3_bucket.state_bucket.arn
@@ -245,13 +230,11 @@ module "sbox_specific_permissions" {
   source                                           = "./modules/specific-environment-permissions"
   common_tags                                      = local.common_tags
   terraform_state_bucket                           = module.terraform_state.terraform_state_bucket_arn
-  terraform_state_lock                             = module.terraform_state_lock.terraform_state_lock_arn
   terraform_github_state_bucket                    = module.terraform_state.terraform_github_state_bucket_arn
   tdr_account_number                               = data.aws_ssm_parameter.sandbox_account_number.value
   tdr_mgmt_account_number                          = data.aws_ssm_parameter.mgmt_account_number.value
   tdr_environment                                  = "sbox"
   read_terraform_state_policy_arn                  = module.common_permissions.read_terraform_state_policy_arn
-  terraform_state_lock_access_arn                  = module.common_permissions.terraform_state_lock_access_arn
   terraform_describe_account_arn                   = module.common_permissions.terraform_describe_account_arn
   terraform_scripts_state_bucket                   = module.terraform_state.terraform_scripts_state_bucket_arn
   add_ssm_policy                                   = true
