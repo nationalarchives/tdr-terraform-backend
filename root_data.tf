@@ -18,6 +18,10 @@ data "aws_ssm_parameter" "sandbox_account_number" {
   name = "/mgmt/sandbox_account"
 }
 
+data "aws_ssm_parameter" "dev_account_number" {
+  name = "/mgmt/dev_account"
+}
+
 data "aws_ssm_parameter" "cost_centre" {
   name = "/mgmt/cost_centre"
 }

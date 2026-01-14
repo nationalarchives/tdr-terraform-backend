@@ -67,6 +67,12 @@ module "github_cloudwatch_terraform_plan_outputs_intg" {
   name        = "terraform-plan-outputs-intg"
 }
 
+module "github_cloudwatch_terraform_plan_outputs_dev" {
+  source      = "./tdr-terraform-modules/cloudwatch_logs"
+  common_tags = local.common_tags
+  name        = "terraform-plan-outputs-dev"
+}
+
 module "github_cloudwatch_terraform_plan_outputs_staging" {
   source      = "./tdr-terraform-modules/cloudwatch_logs"
   common_tags = local.common_tags
@@ -120,6 +126,24 @@ module "github_terraform_assume_role_intg" {
   policy_attachments = {
     terraform_ecs_policy_arn        = module.intg_specific_permissions.terraform_ecs_policy_arn
     access_terraform_state_arn      = module.intg_specific_permissions.access_terraform_state_arn
+    read_terraform_state_policy_arn = module.common_permissions.read_terraform_state_policy_arn
+    terraform_state_lock_access_arn = module.common_permissions.terraform_state_lock_access_arn
+    terraform_describe_account_arn  = module.common_permissions.terraform_describe_account_arn
+    cloudfront_policy               = module.github_cloudwatch_terraform_plan_policy.policy_arn
+  }
+}
+
+module "github_terraform_assume_role_dev" {
+  source = "./tdr-terraform-modules/iam_role"
+  assume_role_policy = templatefile("${path.module}/templates/iam_role/github_assume_role.json.tpl", {
+    account_id = data.aws_ssm_parameter.mgmt_account_number.value,
+    repo_names = jsonencode(concat(module.global_parameters.github_tdr_active_repositories, [local.github_da_reference_generator_repository]))
+  })
+  common_tags = local.common_tags
+  name        = "TDRGithubTerraformAssumeRoleDev"
+  policy_attachments = {
+    terraform_ecs_policy_arn        = module.dev_specific_permissions.terraform_ecs_policy_arn
+    access_terraform_state_arn      = module.dev_specific_permissions.access_terraform_state_arn
     read_terraform_state_policy_arn = module.common_permissions.read_terraform_state_policy_arn
     terraform_state_lock_access_arn = module.common_permissions.terraform_state_lock_access_arn
     terraform_describe_account_arn  = module.common_permissions.terraform_describe_account_arn
