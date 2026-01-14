@@ -322,7 +322,7 @@ module "ecr_consignment_api_repository" {
     intg_account    = data.aws_ssm_parameter.intg_account_number.value,
     staging_account = data.aws_ssm_parameter.staging_account_number.value,
     prod_account    = data.aws_ssm_parameter.prod_account_number.value,
-    dev_account    = data.aws_ssm_parameter.dev_account_number.value
+    dev_account     = data.aws_ssm_parameter.dev_account_number.value
   }
   common_tags = local.common_tags
 }
@@ -378,7 +378,7 @@ module "ecr_consignment_export_repository" {
     intg_account    = data.aws_ssm_parameter.intg_account_number.value,
     staging_account = data.aws_ssm_parameter.staging_account_number.value,
     prod_account    = data.aws_ssm_parameter.prod_account_number.value,
-    dev_account    = data.aws_ssm_parameter.dev_account_number.value
+    dev_account     = data.aws_ssm_parameter.dev_account_number.value
   }
   common_tags = local.common_tags
 }
