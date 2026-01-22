@@ -1,10 +1,10 @@
 locals {
   backend_state_bucket = "tdr-bootstrap-terraform-state"
-  intg_environment = "intg"
-  staging_environment = "staging"
-  prod_environment = "prod"
-  dev_environment = "dev"
-  
+  intg_environment     = "intg"
+  staging_environment  = "staging"
+  prod_environment     = "prod"
+  dev_environment      = "dev"
+
   common_tags = tomap({
     "Owner"           = "TDR Backend", "Terraform" = true,
     "TerraformSource" = "https://github.com/nationalarchives/tdr-terraform-backend",
