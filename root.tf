@@ -1,6 +1,10 @@
 locals {
   backend_state_bucket = "tdr-bootstrap-terraform-state"
-
+  intg_environment = "intg"
+  staging_environment = "staging"
+  prod_environment = "prod"
+  dev_environment = "dev"
+  
   common_tags = tomap({
     "Owner"           = "TDR Backend", "Terraform" = true,
     "TerraformSource" = "https://github.com/nationalarchives/tdr-terraform-backend",
@@ -99,7 +103,7 @@ module "intg_environment_roles" {
     aws = aws.intg
   }
 
-  tdr_environment                          = "intg"
+  tdr_environment                          = local.intg_environment
   common_tags                              = local.common_tags
   tdr_mgmt_account_number                  = data.aws_ssm_parameter.mgmt_account_number.value
   sub_domain                               = "tdr-integration"
@@ -116,7 +120,7 @@ module "dev_environment_roles" {
     aws = aws.dev
   }
 
-  tdr_environment                          = "dev"
+  tdr_environment                          = local.dev_environment
   common_tags                              = local.common_tags
   tdr_mgmt_account_number                  = data.aws_ssm_parameter.mgmt_account_number.value
   sub_domain                               = "tdr-development"
@@ -133,7 +137,7 @@ module "staging_environment_role" {
     aws = aws.staging
   }
 
-  tdr_environment                          = "staging"
+  tdr_environment                          = local.staging_environment
   common_tags                              = local.common_tags
   tdr_mgmt_account_number                  = data.aws_ssm_parameter.mgmt_account_number.value
   sub_domain                               = "tdr-staging"
@@ -150,7 +154,7 @@ module "prod_environment_role" {
     aws = aws.prod
   }
 
-  tdr_environment                          = "prod"
+  tdr_environment                          = local.prod_environment
   common_tags                              = local.common_tags
   tdr_mgmt_account_number                  = data.aws_ssm_parameter.mgmt_account_number.value
   sub_domain                               = "tdr"
@@ -223,7 +227,7 @@ module "intg_specific_permissions" {
   terraform_github_state_bucket                    = module.terraform_state.terraform_github_state_bucket_arn
   tdr_account_number                               = data.aws_ssm_parameter.intg_account_number.value
   tdr_mgmt_account_number                          = data.aws_ssm_parameter.mgmt_account_number.value
-  tdr_environment                                  = "intg"
+  tdr_environment                                  = local.intg_environment
   read_terraform_state_policy_arn                  = module.common_permissions.read_terraform_state_policy_arn
   terraform_describe_account_arn                   = module.common_permissions.terraform_describe_account_arn
   terraform_scripts_state_bucket                   = module.terraform_state.terraform_scripts_state_bucket_arn
@@ -238,7 +242,7 @@ module "staging_specific_permissions" {
   terraform_github_state_bucket                    = module.terraform_state.terraform_github_state_bucket_arn
   tdr_account_number                               = data.aws_ssm_parameter.staging_account_number.value
   tdr_mgmt_account_number                          = data.aws_ssm_parameter.mgmt_account_number.value
-  tdr_environment                                  = "staging"
+  tdr_environment                                  = local.staging_environment
   read_terraform_state_policy_arn                  = module.common_permissions.read_terraform_state_policy_arn
   terraform_describe_account_arn                   = module.common_permissions.terraform_describe_account_arn
   terraform_scripts_state_bucket                   = module.terraform_state.terraform_scripts_state_bucket_arn
@@ -253,7 +257,7 @@ module "prod_specific_permissions" {
   terraform_github_state_bucket                    = module.terraform_state.terraform_github_state_bucket_arn
   tdr_account_number                               = data.aws_ssm_parameter.prod_account_number.value
   tdr_mgmt_account_number                          = data.aws_ssm_parameter.mgmt_account_number.value
-  tdr_environment                                  = "prod"
+  tdr_environment                                  = local.prod_environment
   read_terraform_state_policy_arn                  = module.common_permissions.read_terraform_state_policy_arn
   terraform_describe_account_arn                   = module.common_permissions.terraform_describe_account_arn
   terraform_scripts_state_bucket                   = module.terraform_state.terraform_scripts_state_bucket_arn
@@ -284,7 +288,7 @@ module "dev_specific_permissions" {
   terraform_github_state_bucket                    = module.terraform_state.terraform_github_state_bucket_arn
   tdr_account_number                               = data.aws_ssm_parameter.dev_account_number.value
   tdr_mgmt_account_number                          = data.aws_ssm_parameter.mgmt_account_number.value
-  tdr_environment                                  = "dev"
+  tdr_environment                                  = local.dev_environment
   read_terraform_state_policy_arn                  = module.common_permissions.read_terraform_state_policy_arn
   terraform_describe_account_arn                   = module.common_permissions.terraform_describe_account_arn
   terraform_scripts_state_bucket                   = module.terraform_state.terraform_scripts_state_bucket_arn
