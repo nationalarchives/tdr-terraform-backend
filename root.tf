@@ -1,5 +1,9 @@
 locals {
   backend_state_bucket = "tdr-bootstrap-terraform-state"
+  intg_environment     = "intg"
+  staging_environment  = "staging"
+  prod_environment     = "prod"
+  dev_environment      = "dev"
 
   common_tags = tomap({
     "Owner"           = "TDR Backend", "Terraform" = true,
@@ -74,6 +78,13 @@ provider "aws" {
   }
 }
 
+provider "aws" {
+  alias   = "dev"
+  region  = "eu-west-2"
+  profile = "dev"
+}
+
+
 module "aws_sso_admin_role_ssm_parameters" {
   source = "./da-terraform-modules/ssm_parameter"
   parameters = [
@@ -92,10 +103,27 @@ module "intg_environment_roles" {
     aws = aws.intg
   }
 
-  tdr_environment                          = "intg"
+  tdr_environment                          = local.intg_environment
   common_tags                              = local.common_tags
   tdr_mgmt_account_number                  = data.aws_ssm_parameter.mgmt_account_number.value
   sub_domain                               = "tdr-integration"
+  terraform_external_id                    = module.global_parameters.external_ids.terraform_environments
+  restore_db_external_id                   = module.global_parameters.external_ids.restore_db
+  terraform_scripts_external_id            = module.global_parameters.external_ids.terraform_scripts
+  grafana_management_external_id           = module.global_parameters.external_ids.grafana_management
+  github_da_reference_generator_repository = local.github_da_reference_generator_repository
+}
+
+module "dev_environment_roles" {
+  source = "./modules/environment-roles"
+  providers = {
+    aws = aws.dev
+  }
+
+  tdr_environment                          = local.dev_environment
+  common_tags                              = local.common_tags
+  tdr_mgmt_account_number                  = data.aws_ssm_parameter.mgmt_account_number.value
+  sub_domain                               = "tdr-development"
   terraform_external_id                    = module.global_parameters.external_ids.terraform_environments
   restore_db_external_id                   = module.global_parameters.external_ids.restore_db
   terraform_scripts_external_id            = module.global_parameters.external_ids.terraform_scripts
@@ -109,7 +137,7 @@ module "staging_environment_role" {
     aws = aws.staging
   }
 
-  tdr_environment                          = "staging"
+  tdr_environment                          = local.staging_environment
   common_tags                              = local.common_tags
   tdr_mgmt_account_number                  = data.aws_ssm_parameter.mgmt_account_number.value
   sub_domain                               = "tdr-staging"
@@ -126,7 +154,7 @@ module "prod_environment_role" {
     aws = aws.prod
   }
 
-  tdr_environment                          = "prod"
+  tdr_environment                          = local.prod_environment
   common_tags                              = local.common_tags
   tdr_mgmt_account_number                  = data.aws_ssm_parameter.mgmt_account_number.value
   sub_domain                               = "tdr"
@@ -158,6 +186,17 @@ module "staging_prod_account_parameters" {
   cost_centre = data.aws_ssm_parameter.cost_centre.value
 }
 
+module "dev_account_parameters" {
+  source = "./modules/account-parameters"
+  providers = {
+    aws = aws.dev
+  }
+
+  common_tags = local.common_tags
+  cost_centre = data.aws_ssm_parameter.cost_centre.value
+}
+
+
 //Set up Terraform Backend state
 module "terraform_state" {
   source                             = "./modules/state"
@@ -188,7 +227,7 @@ module "intg_specific_permissions" {
   terraform_github_state_bucket                    = module.terraform_state.terraform_github_state_bucket_arn
   tdr_account_number                               = data.aws_ssm_parameter.intg_account_number.value
   tdr_mgmt_account_number                          = data.aws_ssm_parameter.mgmt_account_number.value
-  tdr_environment                                  = "intg"
+  tdr_environment                                  = local.intg_environment
   read_terraform_state_policy_arn                  = module.common_permissions.read_terraform_state_policy_arn
   terraform_describe_account_arn                   = module.common_permissions.terraform_describe_account_arn
   terraform_scripts_state_bucket                   = module.terraform_state.terraform_scripts_state_bucket_arn
@@ -203,7 +242,7 @@ module "staging_specific_permissions" {
   terraform_github_state_bucket                    = module.terraform_state.terraform_github_state_bucket_arn
   tdr_account_number                               = data.aws_ssm_parameter.staging_account_number.value
   tdr_mgmt_account_number                          = data.aws_ssm_parameter.mgmt_account_number.value
-  tdr_environment                                  = "staging"
+  tdr_environment                                  = local.staging_environment
   read_terraform_state_policy_arn                  = module.common_permissions.read_terraform_state_policy_arn
   terraform_describe_account_arn                   = module.common_permissions.terraform_describe_account_arn
   terraform_scripts_state_bucket                   = module.terraform_state.terraform_scripts_state_bucket_arn
@@ -218,7 +257,7 @@ module "prod_specific_permissions" {
   terraform_github_state_bucket                    = module.terraform_state.terraform_github_state_bucket_arn
   tdr_account_number                               = data.aws_ssm_parameter.prod_account_number.value
   tdr_mgmt_account_number                          = data.aws_ssm_parameter.mgmt_account_number.value
-  tdr_environment                                  = "prod"
+  tdr_environment                                  = local.prod_environment
   read_terraform_state_policy_arn                  = module.common_permissions.read_terraform_state_policy_arn
   terraform_describe_account_arn                   = module.common_permissions.terraform_describe_account_arn
   terraform_scripts_state_bucket                   = module.terraform_state.terraform_scripts_state_bucket_arn
@@ -234,6 +273,22 @@ module "sbox_specific_permissions" {
   tdr_account_number                               = data.aws_ssm_parameter.sandbox_account_number.value
   tdr_mgmt_account_number                          = data.aws_ssm_parameter.mgmt_account_number.value
   tdr_environment                                  = "sbox"
+  read_terraform_state_policy_arn                  = module.common_permissions.read_terraform_state_policy_arn
+  terraform_describe_account_arn                   = module.common_permissions.terraform_describe_account_arn
+  terraform_scripts_state_bucket                   = module.terraform_state.terraform_scripts_state_bucket_arn
+  add_ssm_policy                                   = true
+  terraform_backend_state_bucket                   = data.aws_s3_bucket.state_bucket.arn
+  terraform_state_bucket_encryption_key_policy_arn = module.terraform_state_bucket_kms_encryption_policy.policy_arn
+}
+
+module "dev_specific_permissions" {
+  source                                           = "./modules/specific-environment-permissions"
+  common_tags                                      = local.common_tags
+  terraform_state_bucket                           = module.terraform_state.terraform_state_bucket_arn
+  terraform_github_state_bucket                    = module.terraform_state.terraform_github_state_bucket_arn
+  tdr_account_number                               = data.aws_ssm_parameter.dev_account_number.value
+  tdr_mgmt_account_number                          = data.aws_ssm_parameter.mgmt_account_number.value
+  tdr_environment                                  = local.dev_environment
   read_terraform_state_policy_arn                  = module.common_permissions.read_terraform_state_policy_arn
   terraform_describe_account_arn                   = module.common_permissions.terraform_describe_account_arn
   terraform_scripts_state_bucket                   = module.terraform_state.terraform_scripts_state_bucket_arn
@@ -270,7 +325,8 @@ module "ecr_consignment_api_repository" {
   policy_variables = {
     intg_account    = data.aws_ssm_parameter.intg_account_number.value,
     staging_account = data.aws_ssm_parameter.staging_account_number.value,
-    prod_account    = data.aws_ssm_parameter.prod_account_number.value
+    prod_account    = data.aws_ssm_parameter.prod_account_number.value,
+    dev_account     = data.aws_ssm_parameter.dev_account_number.value
   }
   common_tags = local.common_tags
 }
@@ -283,7 +339,8 @@ module "ecr_transfer_frontend_repository" {
   policy_variables = {
     intg_account    = data.aws_ssm_parameter.intg_account_number.value,
     staging_account = data.aws_ssm_parameter.staging_account_number.value,
-    prod_account    = data.aws_ssm_parameter.prod_account_number.value
+    prod_account    = data.aws_ssm_parameter.prod_account_number.value,
+    dev_account     = data.aws_ssm_parameter.dev_account_number.value
   }
   common_tags = local.common_tags
 }
@@ -296,7 +353,8 @@ module "ecr_collector_repository" {
   policy_variables = {
     intg_account    = data.aws_ssm_parameter.intg_account_number.value,
     staging_account = data.aws_ssm_parameter.staging_account_number.value,
-    prod_account    = data.aws_ssm_parameter.prod_account_number.value
+    prod_account    = data.aws_ssm_parameter.prod_account_number.value,
+    dev_account     = data.aws_ssm_parameter.dev_account_number.value
   }
   common_tags = local.common_tags
 }
@@ -309,7 +367,8 @@ module "ecr_auth_server_repository" {
   policy_variables = {
     intg_account    = data.aws_ssm_parameter.intg_account_number.value,
     staging_account = data.aws_ssm_parameter.staging_account_number.value,
-    prod_account    = data.aws_ssm_parameter.prod_account_number.value
+    prod_account    = data.aws_ssm_parameter.prod_account_number.value,
+    dev_account     = data.aws_ssm_parameter.dev_account_number.value
   }
   common_tags = local.common_tags
 }
@@ -322,7 +381,8 @@ module "ecr_consignment_export_repository" {
   policy_variables = {
     intg_account    = data.aws_ssm_parameter.intg_account_number.value,
     staging_account = data.aws_ssm_parameter.staging_account_number.value,
-    prod_account    = data.aws_ssm_parameter.prod_account_number.value
+    prod_account    = data.aws_ssm_parameter.prod_account_number.value,
+    dev_account     = data.aws_ssm_parameter.dev_account_number.value
   }
   common_tags = local.common_tags
 }
@@ -347,7 +407,8 @@ module "ecr_update_keycloak_repository" {
   policy_variables = {
     intg_account    = data.aws_ssm_parameter.intg_account_number.value,
     staging_account = data.aws_ssm_parameter.staging_account_number.value,
-    prod_account    = data.aws_ssm_parameter.prod_account_number.value
+    prod_account    = data.aws_ssm_parameter.prod_account_number.value,
+    dev_account     = data.aws_ssm_parameter.dev_account_number.value
   }
   common_tags = local.common_tags
 }
@@ -445,7 +506,6 @@ module "terraform_state_bucket_kms_encryption_policy" {
   policy_string = templatefile("${path.module}/templates/iam_policy/state_bucket_encryption_policy.json.tpl", { kms_key_arn = module.terraform_state_bucket_kms_key.kms_key_arn })
   tags          = local.common_tags
 }
-
 # TDRD-960 imported iam_group module from defunct tdr-aws-accounts
 module "iam_group" {
   source            = "./tdr-terraform-modules/iam_group"
@@ -463,6 +523,12 @@ resource "aws_route53_zone" "tdr_tna_intg" {
   name     = "tdr-integration.nationalarchives.gov.uk"
   tags     = local.common_tags
   provider = aws.intg
+}
+
+resource "aws_route53_zone" "tdr_tna_dev" {
+  name     = "tdr-development.nationalarchives.gov.uk"
+  tags     = local.common_tags
+  provider = aws.dev
 }
 
 resource "aws_route53_zone" "tdr_tna_staging" {
