@@ -100,6 +100,7 @@
         "iam:GetGroup",
         "iam:ListAccountAliases",
         "iam:ListAttachedGroupPolicies",
+        "iam:ListRoles",
         "kms:*",
         "lambda:*",
         "logs:*",
