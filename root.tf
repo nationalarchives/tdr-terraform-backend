@@ -555,36 +555,36 @@ module "oam_sink" {
 }
 
 module "oam_sources_dev" {
-  source              = "./da-terraform-modules/oam_sources"
-  aws_oam_sink_arn    = module.oam_sink.aws_oam_sink.arn
-  aws_account_id_sink = data.aws_ssm_parameter.mgmt_account_number.value
+  source                    = "./da-terraform-modules/oam_sources"
+  aws_oam_sink_arn          = module.oam_sink.aws_oam_sink_arn
+  aws_account_id_monitoring = data.aws_ssm_parameter.mgmt_account_number.value
   providers = {
     aws = aws.dev
   }
 }
 
 module "oam_sources_intg" {
-  source              = "./da-terraform-modules/oam_sources"
-  aws_oam_sink_arn    = module.oam_sink.aws_oam_sink.arn
-  aws_account_id_sink = data.aws_ssm_parameter.mgmt_account_number.value
+  source                    = "./da-terraform-modules/oam_sources"
+  aws_oam_sink_arn          = module.oam_sink.aws_oam_sink_arn
+  aws_account_id_monitoring = data.aws_ssm_parameter.mgmt_account_number.value
   providers = {
     aws = aws.intg
   }
 }
 
 module "oam_sources_staging" {
-  source              = "./da-terraform-modules/oam_sources"
-  aws_oam_sink_arn    = module.oam_sink.aws_oam_sink.arn
-  aws_account_id_sink = data.aws_ssm_parameter.mgmt_account_number.value
+  source                    = "./da-terraform-modules/oam_sources"
+  aws_oam_sink_arn          = module.oam_sink.aws_oam_sink_arn
+  aws_account_id_monitoring = data.aws_ssm_parameter.mgmt_account_number.value
   providers = {
     aws = aws.staging
   }
 }
 
 module "oam_sources_prod" {
-  source              = "./da-terraform-modules/oam_sources"
-  aws_oam_sink_arn    = module.oam_sink.aws_oam_sink.arn
-  aws_account_id_sink = data.aws_ssm_parameter.mgmt_account_number.value
+  source                    = "./da-terraform-modules/oam_sources"
+  aws_oam_sink_arn          = module.oam_sink.aws_oam_sink_arn
+  aws_account_id_monitoring = data.aws_ssm_parameter.mgmt_account_number.value
   providers = {
     aws = aws.prod
   }
