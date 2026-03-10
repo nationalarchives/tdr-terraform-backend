@@ -420,12 +420,14 @@ module "ecr_image_scan_log_group" {
 }
 
 module "ecr_image_scan_event" {
-  source                     = "./tdr-terraform-modules/cloudwatch_events"
-  event_pattern              = "ecr_image_scan"
-  log_group_event_target_arn = module.ecr_image_scan_log_group.log_group_arn
-  lambda_event_target_arn    = module.notification_lambda.ecr_scan_notification_lambda_arn
-  rule_name                  = "ecr-image-scan"
-  rule_description           = "Capture each ECR Image Scan"
+  source        = "./tdr-terraform-modules/cloudwatch_events"
+  event_pattern = "ecr_image_scan"
+  event_target_arns = {
+    "log_group_event_target"     = module.ecr_image_scan_log_group.log_group_arn,
+    "notification_lambda_target" = module.notification_lambda.ecr_scan_notification_lambda_arn[0]
+  }
+  rule_name        = "ecr-image-scan"
+  rule_description = "Capture each ECR Image Scan"
 }
 
 module "notifications_topic" {
@@ -472,10 +474,12 @@ module "periodic_ecr_image_scan_lambda" {
 }
 
 module "periodic_ecr_image_scan_event" {
-  source                  = "./tdr-terraform-modules/cloudwatch_events"
-  schedule                = "rate(7 days)"
-  rule_name               = "ecr-scan"
-  lambda_event_target_arn = module.periodic_ecr_image_scan_lambda.ecr_scan_lambda_arn
+  source    = "./tdr-terraform-modules/cloudwatch_events"
+  schedule  = "rate(7 days)"
+  rule_name = "ecr-scan"
+  event_target_arns = {
+    "periodic_ecr_image_scan_target" = module.periodic_ecr_image_scan_lambda.ecr_scan_lambda_arn[0]
+  }
 }
 
 module "terraform_state_bucket_kms_key" {
