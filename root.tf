@@ -510,6 +510,7 @@ module "terraform_state_bucket_kms_encryption_policy" {
   policy_string = templatefile("${path.module}/templates/iam_policy/state_bucket_encryption_policy.json.tpl", { kms_key_arn = module.terraform_state_bucket_kms_key.kms_key_arn })
   tags          = local.common_tags
 }
+
 # TDRD-960 imported iam_group module from defunct tdr-aws-accounts
 module "iam_group" {
   source            = "./tdr-terraform-modules/iam_group"
@@ -547,4 +548,44 @@ resource "aws_route53_zone" "tdr_tna_prod" {
   provider = aws.prod
 }
 
+# TDRD-1323 OAM (Share CW Logs and Metrics with a monitoring account)
+module "oam_sink" {
+  source                 = "./da-terraform-modules/oam_sink"
+  source_oam_account_ids = [data.aws_ssm_parameter.dev_account_number.value, data.aws_ssm_parameter.intg_account_number.value, data.aws_ssm_parameter.staging_account_number.value, data.aws_ssm_parameter.prod_account_number.value]
+}
 
+module "oam_sources_dev" {
+  source                    = "./da-terraform-modules/oam_sources"
+  aws_oam_sink_arn          = module.oam_sink.aws_oam_sink.arn
+  aws_account_id_sink = data.aws_ssm_parameter.mgmt_account_number.value
+  providers = {
+    aws = aws.dev
+  }
+}
+
+module "oam_sources_intg" {
+  source                    = "./da-terraform-modules/oam_sources"
+  aws_oam_sink_arn          = module.oam_sink.aws_oam_sink.arn
+  aws_account_id_sink = data.aws_ssm_parameter.mgmt_account_number.value
+  providers = {
+    aws = aws.intg
+  }
+}
+
+module "oam_sources_staging" {
+  source                    = "./da-terraform-modules/oam_sources"
+  aws_oam_sink_arn          = module.oam_sink.aws_oam_sink.arn
+  aws_account_id_sink = data.aws_ssm_parameter.mgmt_account_number.value
+  providers = {
+    aws = aws.staging
+  }
+}
+
+module "oam_sources_prod" {
+  source                    = "./da-terraform-modules/oam_sources"
+  aws_oam_sink_arn          = module.oam_sink.aws_oam_sink.arn
+  aws_account_id_sink = data.aws_ssm_parameter.mgmt_account_number.value
+  providers = {
+    aws = aws.prod
+  }
+}
