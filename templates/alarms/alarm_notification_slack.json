@@ -1,0 +1,47 @@
+{
+    "channel": "${channel_id}",
+    "blocks": [
+		{
+			"type": "header",
+			"text": {
+				"type": "plain_text",
+				"text": "<alarmName>",
+				"emoji": false
+			}
+		},
+		{
+			"type": "section",
+			"fields": [
+              	                {
+					"type": "plain_text",
+					"text": "State",
+					"emoji": false
+				},
+              	                {
+					"type": "mrkdwn",
+				        "text": "${alarm_state}"
+				},
+				{
+					"type": "plain_text",
+					"text": "Alarm Time",
+					"emoji": false
+				},
+				{
+					"type": "plain_text",
+					"text": "<time>",
+					"emoji": false
+				},
+				{
+					"type": "plain_text",
+				        "text": "Alarm ARN",
+					"emoji": false
+				},
+              	                {
+					"type": "plain_text",
+					"text": "<resources>",
+					"emoji": false
+				}
+			]
+		}
+	]
+}
