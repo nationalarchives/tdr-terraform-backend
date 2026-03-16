@@ -3,9 +3,9 @@
 # * Create an event bridge for alarms to be forwarded to
 # * Create a rule to forward CloudWatch Alarm State Change to alarms bus
 # * Create a role for the rule to run as
-# * Create a role that can be consumed from tdr-terraform-enviroonments for creating alarms
+# * Create a role that can be consumed from tdr-terraform-environments for creating alarms
 # * Create slack API destination
-# * Create rules for sending alterts to Slack (TODO put this in another file?)
+# * Create rules for sending alterts to Slack
 resource "aws_cloudwatch_event_bus" "alarms_event_bus" {
   name = "tdr-alarms"
 }
@@ -16,16 +16,15 @@ data "aws_iam_roles" "admin_sso_role" {
   path_prefix = "/aws-reserved/sso.amazonaws.com/"
 }
 
-# Get the slack token
 resource "aws_secretsmanager_secret" "alarms_slack_token" {
   name        = "alarms_slack_token_tdr_notifier"
   description = "Oauth token for TDR Notfier slack app"
 }
 
-# Get the slack token
 data "aws_secretsmanager_secret_version" "alarms_slack_token" {
   secret_id = aws_secretsmanager_secret.alarms_slack_token.id
 }
+
 
 #### IAM ####
 data "aws_iam_policy_document" "alarms_trust" {
@@ -176,7 +175,8 @@ resource "aws_cloudwatch_event_api_destination" "alarms_slack_api" {
   connection_arn                   = aws_cloudwatch_event_connection.alarms_slack_api.arn
 }
 
-##### Forwarding from default bus for alarm state ####
+
+#### Forwarding from default bus for alarm state ####
 resource "aws_cloudwatch_event_rule" "alarms_default_cloudwatch_alarm_state_change" {
   name        = "alarm-state-changes"
   description = "Take the alarm state change events from the default bus"
@@ -214,16 +214,14 @@ resource "aws_cloudwatch_event_target" "alarms_cloudwatch_all" {
   event_bus_name = aws_cloudwatch_event_bus.alarms_event_bus.name
 }
 
-
-# Catch any alarm state change and sendo to cloudwatch
+# Catch any alarm state change and send  to cloudwatch
 resource "aws_cloudwatch_event_rule" "alarms_state_change_any_environment" {
   for_each    = toset(["OK", "ALARM"])
   name        = format("alarm-state-changes-%s-%s", each.key, "all")
-  description = "Take the alarm state changes from the ddt-alarms bus for non_production account"
+  description = "Take the alarm state changes from the tdr-alarms bus for non_production account"
   event_pattern = jsonencode({
-    source      = ["aws.cloudwatch"],
-    detail-type = ["CloudWatch Alarm State Change"]
-    #"detail.configuration.metrics.accountId" = [data.aws_ssm_parameter._account_number.value],
+    source               = ["aws.cloudwatch"],
+    detail-type          = ["CloudWatch Alarm State Change"]
     "detail.state.value" = [each.key]
   })
   event_bus_name = aws_cloudwatch_event_bus.alarms_event_bus.name
@@ -250,5 +248,3 @@ resource "aws_cloudwatch_event_target" "alarm_state_change_intg_to_cloudwatch" {
     })
   }
 }
-
-
