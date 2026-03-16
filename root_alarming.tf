@@ -10,24 +10,22 @@ resource "aws_cloudwatch_event_bus" "alarms_event_bus" {
   name = "tdr-alarms"
 }
 
-
 # Get the admin role without hardcoding
 data "aws_iam_roles" "admin_sso_role" {
   name_regex  = "AWSReservedSSO_AdministratorAccess_*"
   path_prefix = "/aws-reserved/sso.amazonaws.com/"
 }
 
-# Get the slack token - TODO this is already in the prod account somewhere
+# Get the slack token
 resource "aws_secretsmanager_secret" "alarms_slack_token" {
   name        = "alarms_slack_token_tdr_notifier"
   description = "Oauth token for TDR Notfier slack app"
 }
 
-# Get the slack token - TODO this is already in the prod account somewhere
+# Get the slack token
 data "aws_secretsmanager_secret_version" "alarms_slack_token" {
   secret_id = aws_secretsmanager_secret.alarms_slack_token.id
 }
-
 
 #### IAM ####
 data "aws_iam_policy_document" "alarms_trust" {
@@ -247,7 +245,7 @@ resource "aws_cloudwatch_event_target" "alarm_state_change_intg_to_cloudwatch" {
     }
 
     input_template = templatefile("${path.module}/templates/alarms/alarm_notification_slack.json", {
-      channel_id  = ""
+      channel_id  = module.global_parameters.slack_channels.bot-testing
       alarm_state = each.value == "OK" ? ":green-tick:" : ":helmet_with_white_cross:"
     })
   }
