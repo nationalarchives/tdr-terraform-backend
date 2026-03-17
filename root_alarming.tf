@@ -25,7 +25,6 @@ data "aws_secretsmanager_secret_version" "alarms_slack_token" {
   secret_id = aws_secretsmanager_secret.alarms_slack_token.id
 }
 
-
 #### IAM ####
 data "aws_iam_policy_document" "alarms_trust" {
   statement {
@@ -150,7 +149,6 @@ resource "aws_iam_role_policy_attachment" "alarms_deployer_role" {
   policy_arn = aws_iam_policy.alarms_deployer_role.arn
 }
 
-
 #### Slack API Destination ####
 resource "aws_cloudwatch_event_connection" "alarms_slack_api" {
   name               = "slack_api_alarms_connection"
@@ -175,7 +173,6 @@ resource "aws_cloudwatch_event_api_destination" "alarms_slack_api" {
   connection_arn                   = aws_cloudwatch_event_connection.alarms_slack_api.arn
 }
 
-
 #### Forwarding from default bus for alarm state ####
 resource "aws_cloudwatch_event_rule" "alarms_default_cloudwatch_alarm_state_change" {
   name        = "alarm-state-changes"
@@ -192,7 +189,6 @@ resource "aws_cloudwatch_event_target" "alarm_default_cloudwatch_alarm_state_cha
   arn      = aws_cloudwatch_event_bus.alarms_event_bus.arn
   role_arn = aws_iam_role.alarms_role.arn
 }
-
 
 #### Rules ####
 resource "aws_cloudwatch_log_group" "alarms_all" {
