@@ -1,0 +1,246 @@
+# TDRD-1268
+# Alarming/Alerting infrastructure
+# * Create an event bridge for alarms to be forwarded to
+# * Create a rule to forward CloudWatch Alarm State Change to alarms bus
+# * Create a role for the rule to run as
+# * Create a role that can be consumed from tdr-terraform-environments for creating alarms
+# * Create slack API destination
+# * Create rules for sending alterts to Slack
+resource "aws_cloudwatch_event_bus" "alarms_event_bus" {
+  name = "tdr-alarms"
+}
+
+# Get the admin role without hardcoding
+data "aws_iam_roles" "admin_sso_role" {
+  name_regex  = "AWSReservedSSO_AdministratorAccess_*"
+  path_prefix = "/aws-reserved/sso.amazonaws.com/"
+}
+
+resource "aws_secretsmanager_secret" "alarms_slack_token" {
+  name        = "alarms_slack_token_tdr_notifier"
+  description = "Oauth token for TDR Notfier slack app"
+}
+
+data "aws_secretsmanager_secret_version" "alarms_slack_token" {
+  secret_id = aws_secretsmanager_secret.alarms_slack_token.id
+}
+
+#### IAM ####
+data "aws_iam_policy_document" "alarms_trust" {
+  statement {
+    sid     = "AlarmsTrust"
+    actions = ["sts:AssumeRole"]
+    effect  = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["events.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [data.aws_ssm_parameter.mgmt_account_number.value]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "alarms_role" {
+  statement {
+    sid       = "TDRAlarmsPutBus"
+    effect    = "Allow"
+    actions   = ["events:PutEvents"]
+    resources = [aws_cloudwatch_event_bus.alarms_event_bus.arn]
+  }
+  statement {
+    sid       = "TDRAlarmsInvokeApi"
+    effect    = "Allow"
+    actions   = ["events:InvokeApiDestination"]
+    resources = [aws_cloudwatch_event_api_destination.alarms_slack_api.arn]
+  }
+  statement {
+    sid    = "TDRAlarmsConnectionSecrets"
+    effect = "Allow"
+    actions = ["secretsmanager:CreateSecret",
+      "secretsmanager:UpdateSecret",
+      "secretsmanager:DescribeSecret",
+      "secretsmanager:DeleteSecret",
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:PutSecretValue"
+    ]
+    resources = ["arn:aws:secretsmanager:*:*:secret:events!connection/*"]
+  }
+}
+
+resource "aws_iam_policy" "alarms_role" {
+  name        = "TDRAlarmsBusRole"
+  description = "Policy for eventbridge execution"
+  policy      = data.aws_iam_policy_document.alarms_role.json
+}
+
+resource "aws_iam_role" "alarms_role" {
+  name               = "TDRAlarmsBus"
+  assume_role_policy = data.aws_iam_policy_document.alarms_trust.json
+}
+
+resource "aws_iam_role_policy_attachment" "alarms_role" {
+  role       = aws_iam_role.alarms_role.name
+  policy_arn = aws_iam_policy.alarms_role.arn
+}
+
+# Role for deploying alarms in to manangement from environments stack
+data "aws_iam_policy_document" "alarms_deployer_role" {
+  statement {
+    sid    = "DeployAlarms"
+    effect = "Allow"
+    actions = [
+      "cloudwatch:PutMetricAlarm",
+      "cloudwatch:PutCompositeAlarm",
+      "cloudwatch:DeleteAlarms",
+      "cloudwatch:DescribeAlarms",
+      "cloudwatch:DescribeAlarmHistory",
+      "cloudwatch:DescribeAlarmsForMetric",
+      "cloudwatch:SetAlarmState",
+      "cloudwatch:EnableAlarmActions",
+      "cloudwatch:DisableAlarmActions",
+      "cloudwatch:GetAlarmMuteRule",
+      "cloudwatch:PutAlarmMuteRule",
+      "cloudwatch:DeleteAlarmMuteRule",
+      "cloudwatch:TagResource",
+      "cloudwatch:UntagResource",
+      "cloudwatch:ListTagsForResource"
+    ]
+    resources = ["*"]
+  }
+}
+
+data "aws_iam_policy_document" "alarms_deployer_trust" {
+  statement {
+    sid     = "DeployAlarmsTrust"
+    actions = ["sts:AssumeRole"]
+    effect  = "Allow"
+
+    principals {
+      type = "AWS"
+      identifiers = [
+        "arn:aws:iam::${data.aws_ssm_parameter.mgmt_account_number.value}:role/TDRGithubTerraformAssumeRoleIntg",
+        "arn:aws:iam::${data.aws_ssm_parameter.mgmt_account_number.value}:role/TDRGithubTerraformAssumeRoleDev",
+        "arn:aws:iam::${data.aws_ssm_parameter.mgmt_account_number.value}:role/TDRGithubTerraformAssumeRoleStaging",
+        "arn:aws:iam::${data.aws_ssm_parameter.mgmt_account_number.value}:role/TDRGithubTerraformAssumeRoleProd",
+        one(data.aws_iam_roles.admin_sso_role.arns)
+      ]
+    }
+  }
+}
+
+resource "aws_iam_policy" "alarms_deployer_role" {
+  name        = "TDRTerraformAlarmsDeployerRole"
+  description = "Policy for creating cloudwatch alarms"
+  policy      = data.aws_iam_policy_document.alarms_deployer_role.json
+}
+
+resource "aws_iam_role" "alarms_deployer_role" {
+  name               = "TDRTerraformAlarmsDeployerRole"
+  assume_role_policy = data.aws_iam_policy_document.alarms_deployer_trust.json
+}
+
+resource "aws_iam_role_policy_attachment" "alarms_deployer_role" {
+  role       = aws_iam_role.alarms_deployer_role.name
+  policy_arn = aws_iam_policy.alarms_deployer_role.arn
+}
+
+#### Slack API Destination ####
+resource "aws_cloudwatch_event_connection" "alarms_slack_api" {
+  name               = "slack_api_alarms_connection"
+  description        = "connection for slack_api_alarms"
+  authorization_type = "API_KEY"
+
+  auth_parameters {
+    api_key {
+      key = "Authorization"
+
+      value = "Bearer ${data.aws_secretsmanager_secret_version.alarms_slack_token.secret_string}"
+    }
+  }
+}
+
+resource "aws_cloudwatch_event_api_destination" "alarms_slack_api" {
+  name                             = "slack_api_alarms"
+  description                      = "send alarms to slack"
+  invocation_endpoint              = "https://slack.com/api/chat.postMessage"
+  http_method                      = "POST"
+  invocation_rate_limit_per_second = 5
+  connection_arn                   = aws_cloudwatch_event_connection.alarms_slack_api.arn
+}
+
+#### Forwarding from default bus for alarm state ####
+resource "aws_cloudwatch_event_rule" "alarms_default_cloudwatch_alarm_state_change" {
+  name        = "alarm-state-changes"
+  description = "Take the alarm state change events from the default bus"
+  event_pattern = jsonencode({
+    source      = ["aws.cloudwatch"],
+    detail-type = ["CloudWatch Alarm State Change"]
+  })
+  event_bus_name = "default"
+}
+
+resource "aws_cloudwatch_event_target" "alarm_default_cloudwatch_alarm_state_change_to_ddt_alarms_bus_target" {
+  rule     = aws_cloudwatch_event_rule.alarms_default_cloudwatch_alarm_state_change.name
+  arn      = aws_cloudwatch_event_bus.alarms_event_bus.arn
+  role_arn = aws_iam_role.alarms_role.arn
+}
+
+#### Rules ####
+resource "aws_cloudwatch_log_group" "alarms_all" {
+  name              = "/aws/events/tdr_alarms_all"
+  retention_in_days = 7
+}
+
+# Catch any events on this bus and dump to cloudwatch
+resource "aws_cloudwatch_event_rule" "alarms_all_to_cloudwatch" {
+  name           = "all-to-cloudwatch-logs"
+  description    = "Dump all messages to cloudwatch logs"
+  event_bus_name = aws_cloudwatch_event_bus.alarms_event_bus.name
+  event_pattern  = jsonencode({ "detail-type" : [{ "exists" : true }] })
+}
+
+resource "aws_cloudwatch_event_target" "alarms_cloudwatch_all" {
+  rule           = aws_cloudwatch_event_rule.alarms_all_to_cloudwatch.name
+  arn            = aws_cloudwatch_log_group.alarms_all.arn
+  event_bus_name = aws_cloudwatch_event_bus.alarms_event_bus.name
+}
+
+# Catch any alarm state change and send  to cloudwatch
+resource "aws_cloudwatch_event_rule" "alarms_state_change_any_environment" {
+  for_each    = toset(["OK", "ALARM"])
+  name        = format("alarm-state-changes-%s-%s", each.key, "all")
+  description = "Take the alarm state changes from the tdr-alarms bus for non_production account"
+  event_pattern = jsonencode({
+    source               = ["aws.cloudwatch"],
+    detail-type          = ["CloudWatch Alarm State Change"]
+    "detail.state.value" = [each.key]
+  })
+  event_bus_name = aws_cloudwatch_event_bus.alarms_event_bus.name
+}
+
+resource "aws_cloudwatch_event_target" "alarm_state_change_intg_to_cloudwatch" {
+  for_each       = toset(["OK", "ALARM"])
+  rule           = aws_cloudwatch_event_rule.alarms_state_change_any_environment[each.key].name
+  arn            = aws_cloudwatch_event_api_destination.alarms_slack_api.arn
+  event_bus_name = aws_cloudwatch_event_bus.alarms_event_bus.name
+  role_arn       = aws_iam_role.alarms_role.arn
+
+  input_transformer {
+    input_paths = {
+      alarmName = "$.detail.alarmName",
+      resources = "$.resources[0]",
+      state     = "$.detail.state.value",
+      time      = "$.detail.state.timestamp"
+    }
+
+    input_template = templatefile("${path.module}/templates/alarms/alarm_notification_slack.json", {
+      channel_id  = module.global_parameters.slack_channels.bot-testing
+      alarm_state = each.value == "OK" ? ":green-tick:" : ":helmet_with_white_cross:"
+    })
+  }
+}
