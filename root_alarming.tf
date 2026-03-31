@@ -210,22 +210,20 @@ resource "aws_cloudwatch_event_target" "alarms_cloudwatch_all" {
   event_bus_name = aws_cloudwatch_event_bus.alarms_event_bus.name
 }
 
-# Catch any alarm state change and send  to cloudwatch
-resource "aws_cloudwatch_event_rule" "alarms_state_change_any_environment" {
-  for_each    = toset(["OK", "ALARM"])
-  name        = format("alarm-state-changes-%s-%s", each.key, "all")
-  description = "Take the alarm state changes from the tdr-alarms bus for non_production account"
+# Catch any alarm state change to ALARM and send to cloudwatch 
+resource "aws_cloudwatch_event_rule" "alarms_state_change_any_environment_any_alarm" {
+  name        = "alarm-state-changes-ALARM-all"
+  description = "Catch all state changes to ALARM and send to slack"
   event_pattern = jsonencode({
     source               = ["aws.cloudwatch"],
     detail-type          = ["CloudWatch Alarm State Change"]
-    "detail.state.value" = [each.key]
+    "detail.state.value" = ["ALARM"]
   })
   event_bus_name = aws_cloudwatch_event_bus.alarms_event_bus.name
 }
 
-resource "aws_cloudwatch_event_target" "alarm_state_change_intg_to_cloudwatch" {
-  for_each       = toset(["OK", "ALARM"])
-  rule           = aws_cloudwatch_event_rule.alarms_state_change_any_environment[each.key].name
+resource "aws_cloudwatch_event_target" "alarm_state_change_any_environment_any_alarm_slack" {
+  rule           = aws_cloudwatch_event_rule.alarms_state_change_any_environment_any_alarm.name
   arn            = aws_cloudwatch_event_api_destination.alarms_slack_api.arn
   event_bus_name = aws_cloudwatch_event_bus.alarms_event_bus.name
   role_arn       = aws_iam_role.alarms_role.arn
@@ -240,7 +238,110 @@ resource "aws_cloudwatch_event_target" "alarm_state_change_intg_to_cloudwatch" {
 
     input_template = templatefile("${path.module}/templates/alarms/alarm_notification_slack.json", {
       channel_id  = module.global_parameters.slack_channels.bot-testing
-      alarm_state = each.value == "OK" ? ":green-tick:" : ":helmet_with_white_cross:"
+      alarm_state = ":helmet_with_white_cross:"
+    })
+  }
+}
+
+# Catch RDS alarm state changes to OK and send to cloudwatch
+resource "aws_cloudwatch_event_rule" "alarms_state_change_any_environment_rds_ok" {
+  name        = "alarm-state-changes-OK-rds"
+  description = "Catch RDS state changes to OK and send to slack"
+  event_pattern = jsonencode({
+    source                                                     = ["aws.cloudwatch"],
+    detail-type                                                = ["CloudWatch Alarm State Change"]
+    "detail.state.value"                                       = ["OK"]
+    "detail.configuration.metrics.metricStat.metric.namespace" = ["AWS/RDS"]
+  })
+  event_bus_name = aws_cloudwatch_event_bus.alarms_event_bus.name
+}
+
+resource "aws_cloudwatch_event_target" "alarm_state_change_any_environment_rds_ok_slack" {
+  rule           = aws_cloudwatch_event_rule.alarms_state_change_any_environment_rds_ok.name
+  arn            = aws_cloudwatch_event_api_destination.alarms_slack_api.arn
+  event_bus_name = aws_cloudwatch_event_bus.alarms_event_bus.name
+  role_arn       = aws_iam_role.alarms_role.arn
+
+  input_transformer {
+    input_paths = {
+      alarmName = "$.detail.alarmName",
+      resources = "$.resources[0]",
+      state     = "$.detail.state.value",
+      time      = "$.detail.state.timestamp"
+    }
+
+    input_template = templatefile("${path.module}/templates/alarms/alarm_notification_slack.json", {
+      channel_id  = module.global_parameters.slack_channels.bot-testing
+      alarm_state = ":green-tick:"
+    })
+  }
+}
+
+# Catch ALB alarm state changes to OK and send to cloudwatch
+resource "aws_cloudwatch_event_rule" "alarms_state_change_any_environment_alb_ok" {
+  name        = "alarm-state-changes-OK-alb"
+  description = "Catch ALB state changes to OK and send to slack"
+  event_pattern = jsonencode({
+    source                                                     = ["aws.cloudwatch"],
+    detail-type                                                = ["CloudWatch Alarm State Change"]
+    "detail.state.value"                                       = ["OK"]
+    "detail.configuration.metrics.metricStat.metric.namespace" = ["AWS/ApplicationELB"]
+  })
+  event_bus_name = aws_cloudwatch_event_bus.alarms_event_bus.name
+}
+
+resource "aws_cloudwatch_event_target" "alarm_state_change_any_environment_alb_ok_slack" {
+  rule           = aws_cloudwatch_event_rule.alarms_state_change_any_environment_alb_ok.name
+  arn            = aws_cloudwatch_event_api_destination.alarms_slack_api.arn
+  event_bus_name = aws_cloudwatch_event_bus.alarms_event_bus.name
+  role_arn       = aws_iam_role.alarms_role.arn
+
+  input_transformer {
+    input_paths = {
+      alarmName = "$.detail.alarmName",
+      resources = "$.resources[0]",
+      state     = "$.detail.state.value",
+      time      = "$.detail.state.timestamp"
+    }
+
+    input_template = templatefile("${path.module}/templates/alarms/alarm_notification_slack.json", {
+      channel_id  = module.global_parameters.slack_channels.bot-testing
+      alarm_state = ":green-tick:"
+    })
+  }
+}
+
+# Catch Lambda Throttle alarm state changes to OK and send to cloudwatch
+resource "aws_cloudwatch_event_rule" "alarms_state_change_any_environment_lambda_throttle_ok" {
+  name        = "alarm-state-changes-OK-lambda-throttle"
+  description = "Catch Lambda Throttle state changes to OK and send to slack"
+  event_pattern = jsonencode({
+    source                                                     = ["aws.cloudwatch"],
+    detail-type                                                = ["CloudWatch Alarm State Change"]
+    "detail.state.value"                                       = ["OK"]
+    "detail.configuration.metrics.metricStat.metric.namespace" = ["AWS/Lambda"]
+    "detail.configuration.metrics.metricStat.metric.name"      = ["Throttles"]
+  })
+  event_bus_name = aws_cloudwatch_event_bus.alarms_event_bus.name
+}
+
+resource "aws_cloudwatch_event_target" "alarm_state_change_any_environment_lambda_throttle_ok_slack" {
+  rule           = aws_cloudwatch_event_rule.alarms_state_change_any_environment_lambda_throttle_ok.name
+  arn            = aws_cloudwatch_event_api_destination.alarms_slack_api.arn
+  event_bus_name = aws_cloudwatch_event_bus.alarms_event_bus.name
+  role_arn       = aws_iam_role.alarms_role.arn
+
+  input_transformer {
+    input_paths = {
+      alarmName = "$.detail.alarmName",
+      resources = "$.resources[0]",
+      state     = "$.detail.state.value",
+      time      = "$.detail.state.timestamp"
+    }
+
+    input_template = templatefile("${path.module}/templates/alarms/alarm_notification_slack.json", {
+      channel_id  = module.global_parameters.slack_channels.bot-testing
+      alarm_state = ":green-tick:"
     })
   }
 }
