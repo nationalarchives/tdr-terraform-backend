@@ -199,7 +199,7 @@ resource "aws_iam_role" "github_service_unavailable_deploy_role" {
 
 resource "aws_iam_policy" "github_service_unavailable_deploy_policy" {
   name   = "TDRGithubActionsDeployServiceUnavailablePolicy${title(var.tdr_environment)}"
-  policy = templatefile("${path.module}/templates/jenkins_service_unavailable_deploy_policy.json.tpl", {})
+  policy = templatefile("${path.module}/templates/github_service_unavailable_deploy_policy.json.tpl", {})
 }
 
 resource "aws_iam_role_policy_attachment" "github_service_unavailable_attach" {
