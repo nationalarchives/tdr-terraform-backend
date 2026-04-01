@@ -1,16 +1,18 @@
 {
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "ServiceUnavailableDeploy",
-      "Effect": "Allow",
-      "Action": [
-        "elasticloadbalancing:DescribeListeners",
-        "elasticloadbalancing:DescribeLoadBalancers",
-        "elasticloadbalancing:DescribeTargetGroups",
-        "elasticloadbalancing:ModifyListener"
-      ],
-      "Resource": "*"
-    }
-  ]
+    "Statement": [
+        {
+            "Action": [
+                "elasticloadbalancing:DescribeLoadBalancers",
+                "elasticloadbalancing:DescribeListeners",
+                "elasticloadbalancing:DescribeTargetGroups",
+                "elasticloadbalancing:ModifyListener",
+                "elasticloadbalancing:DescribeRules",
+                "elasticloadbalancing:ModifyRule"
+            ],
+            "Effect": "Allow",
+            "Resource": "*",
+            "Sid": "ServiceUnavailableDeploy"
+        }
+    ],
+    "Version": "2012-10-17"
 }
