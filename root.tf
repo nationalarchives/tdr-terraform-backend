@@ -110,7 +110,7 @@ module "intg_environment_roles" {
   terraform_external_id                    = module.global_parameters.external_ids.terraform_environments
   restore_db_external_id                   = module.global_parameters.external_ids.restore_db
   terraform_scripts_external_id            = module.global_parameters.external_ids.terraform_scripts
-  grafana_management_external_id           = module.global_parameters.external_ids.grafana_management
+  #grafana_management_external_id           = module.global_parameters.external_ids.grafana_management
   github_da_reference_generator_repository = local.github_da_reference_generator_repository
 }
 
@@ -127,7 +127,7 @@ module "dev_environment_roles" {
   terraform_external_id                    = module.global_parameters.external_ids.terraform_environments
   restore_db_external_id                   = module.global_parameters.external_ids.restore_db
   terraform_scripts_external_id            = module.global_parameters.external_ids.terraform_scripts
-  grafana_management_external_id           = module.global_parameters.external_ids.grafana_management
+  #grafana_management_external_id           = module.global_parameters.external_ids.grafana_management
   github_da_reference_generator_repository = local.github_da_reference_generator_repository
 }
 
@@ -144,7 +144,7 @@ module "staging_environment_role" {
   terraform_external_id                    = module.global_parameters.external_ids.terraform_environments
   restore_db_external_id                   = module.global_parameters.external_ids.restore_db
   terraform_scripts_external_id            = module.global_parameters.external_ids.terraform_scripts
-  grafana_management_external_id           = module.global_parameters.external_ids.grafana_management
+  #grafana_management_external_id           = module.global_parameters.external_ids.grafana_management
   github_da_reference_generator_repository = local.github_da_reference_generator_repository
 }
 
@@ -161,7 +161,7 @@ module "prod_environment_role" {
   terraform_external_id                    = module.global_parameters.external_ids.terraform_environments
   restore_db_external_id                   = module.global_parameters.external_ids.restore_db
   terraform_scripts_external_id            = module.global_parameters.external_ids.terraform_scripts
-  grafana_management_external_id           = module.global_parameters.external_ids.grafana_management
+  #grafana_management_external_id           = module.global_parameters.external_ids.grafana_management
   github_da_reference_generator_repository = local.github_da_reference_generator_repository
 }
 
