@@ -3,7 +3,6 @@ locals {
   state_buckets = [
     aws_s3_bucket.tdr_terraform_state,
     aws_s3_bucket.tdr_terraform_state_github,
-#    aws_s3_bucket.tdr_terraform_state_grafana,
     aws_s3_bucket.tdr_terraform_state_scripts
   ]
 }
