@@ -26,6 +26,7 @@
         "rds:ListTagsForResource",
         "rds:ModifyDBCluster",
         "rds:RestoreDBClusterToPointInTime",
+        "rds:RestoreDBInstanceToPointInTime",
         "ssm:GetParameter",
         "ssm:GetParameters",
         "ssm:ListTagsForResource",
