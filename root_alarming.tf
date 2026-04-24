@@ -237,7 +237,7 @@ resource "aws_cloudwatch_event_target" "alarm_state_change_any_environment_any_a
     }
 
     input_template = templatefile("${path.module}/templates/alarms/alarm_notification_slack.json", {
-      channel_id  = module.global_parameters.slack_channels.da-tdr-dev-notifications
+      channel_id  = module.global_parameters.slack_channels.da-tdr-cloudwatch-alarms
       alarm_state = ":helmet_with_white_cross:"
     })
   }
@@ -271,7 +271,7 @@ resource "aws_cloudwatch_event_target" "alarm_state_change_any_environment_rds_o
     }
 
     input_template = templatefile("${path.module}/templates/alarms/alarm_notification_slack.json", {
-      channel_id  = module.global_parameters.slack_channels.da-tdr-dev-notifications
+      channel_id  = module.global_parameters.slack_channels.da-tdr-cloudwatch-alarms
       alarm_state = ":green-tick:"
     })
   }
@@ -305,7 +305,7 @@ resource "aws_cloudwatch_event_target" "alarm_state_change_any_environment_alb_o
     }
 
     input_template = templatefile("${path.module}/templates/alarms/alarm_notification_slack.json", {
-      channel_id  = module.global_parameters.slack_channels.da-tdr-dev-notifications
+      channel_id  = module.global_parameters.slack_channels.da-tdr-cloudwatch-alarms
       alarm_state = ":green-tick:"
     })
   }
@@ -340,7 +340,7 @@ resource "aws_cloudwatch_event_target" "alarm_state_change_any_environment_lambd
     }
 
     input_template = templatefile("${path.module}/templates/alarms/alarm_notification_slack.json", {
-      channel_id  = module.global_parameters.slack_channels.da-tdr-dev-notifications
+      channel_id  = module.global_parameters.slack_channels.da-tdr-cloudwatch-alarms
       alarm_state = ":green-tick:"
     })
   }
