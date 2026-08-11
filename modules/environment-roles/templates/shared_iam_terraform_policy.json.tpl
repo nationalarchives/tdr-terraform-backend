@@ -91,7 +91,6 @@
         "arn:aws:iam::${account_id}:role/TDRFileFormatECSExecutionRole${title(environment)}",
         "arn:aws:iam::${account_id}:role/TDRFileFormatEcsTaskRole${title(environment)}",
         "arn:aws:iam::${account_id}:role/TDRFileFormatRole${title(environment)}",
-        "arn:aws:iam::${account_id}:role/TDRFileChecksS3FilesRole${title(environment)}",
         "arn:aws:iam::${account_id}:role/TDRGithubActions*",
         "arn:aws:iam::${account_id}:role/TDRGithubActionsRunFileFormatECS${title(environment)}",
         "arn:aws:iam::${account_id}:role/TDRGitHubECSUpdateRole${title(environment)}",
