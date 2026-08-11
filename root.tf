@@ -268,7 +268,8 @@ module "ecr_transfer_service_repository" {
   allowed_principals = [
     "arn:aws:iam::${data.aws_ssm_parameter.intg_account_number.value}:role/TDRTransferServiceECSExecutionRoleIntg",
     "arn:aws:iam::${data.aws_ssm_parameter.staging_account_number.value}:role/TDRTransferServiceECSExecutionRoleStaging",
-    "arn:aws:iam::${data.aws_ssm_parameter.prod_account_number.value}:role/TDRTransferServiceECSExecutionRoleProd"
+    "arn:aws:iam::${data.aws_ssm_parameter.prod_account_number.value}:role/TDRTransferServiceECSExecutionRoleProd",
+    "arn:aws:iam::${data.aws_ssm_parameter.dev_account_number.value}:role/TDRTransferServiceECSExecutionRoleDev"
   ]
   common_tags = local.common_tags
 }
@@ -403,9 +404,8 @@ module "notification_lambda" {
   event_rule_arns = [
     module.ecr_image_scan_event.event_arn
   ]
-  sns_topic_arns    = [module.notifications_topic.sns_arn]
-  muted_scan_alerts = module.global_parameters.muted_ecr_scan_alerts
-  kms_key_arn       = module.mgmt_encryption_key.kms_key_arn
+  sns_topic_arns = [module.notifications_topic.sns_arn]
+  kms_key_arn    = module.mgmt_encryption_key.kms_key_arn
   // value not needed for mgmt lambda but cipher text encrypted so cannot be an empty value
   da_event_bus_arn = "placeholder"
 }
@@ -501,48 +501,6 @@ resource "aws_route53_zone" "tdr_tna_prod" {
   name     = "tdr.nationalarchives.gov.uk"
   tags     = local.common_tags
   provider = aws.prod
-}
-
-# TDRD-1323 OAM (Share CW Logs and Metrics with a monitoring account)
-module "oam_sink" {
-  source                 = "./da-terraform-modules/oam_sink"
-  source_oam_account_ids = [data.aws_ssm_parameter.dev_account_number.value, data.aws_ssm_parameter.intg_account_number.value, data.aws_ssm_parameter.staging_account_number.value, data.aws_ssm_parameter.prod_account_number.value]
-}
-
-module "oam_sources_dev" {
-  source              = "./da-terraform-modules/oam_sources"
-  aws_oam_sink_arn    = module.oam_sink.aws_oam_sink.arn
-  aws_account_id_sink = data.aws_ssm_parameter.mgmt_account_number.value
-  providers = {
-    aws = aws.dev
-  }
-}
-
-module "oam_sources_intg" {
-  source              = "./da-terraform-modules/oam_sources"
-  aws_oam_sink_arn    = module.oam_sink.aws_oam_sink.arn
-  aws_account_id_sink = data.aws_ssm_parameter.mgmt_account_number.value
-  providers = {
-    aws = aws.intg
-  }
-}
-
-module "oam_sources_staging" {
-  source              = "./da-terraform-modules/oam_sources"
-  aws_oam_sink_arn    = module.oam_sink.aws_oam_sink.arn
-  aws_account_id_sink = data.aws_ssm_parameter.mgmt_account_number.value
-  providers = {
-    aws = aws.staging
-  }
-}
-
-module "oam_sources_prod" {
-  source              = "./da-terraform-modules/oam_sources"
-  aws_oam_sink_arn    = module.oam_sink.aws_oam_sink.arn
-  aws_account_id_sink = data.aws_ssm_parameter.mgmt_account_number.value
-  providers = {
-    aws = aws.prod
-  }
 }
 
 # TDRD-1419 - Policy for SSO Observability Role
