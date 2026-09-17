@@ -449,7 +449,7 @@ module "terraform_state_bucket_kms_key" {
       module.github_terraform_assume_role_prod.role.arn,
       data.aws_ssm_parameter.mgmt_admin_role.value
     ]
-    user_roles_decoupled                = concat(local.wiz_role_arns, local.aws_backup_local_role_arn)
+    user_roles_decoupled                = concat(local.wiz_role_arns, [local.aws_backup_local_role_arn])
     persistent_resource_roles_decoupled = local.wiz_role_arns
     ci_roles                            = [data.aws_ssm_parameter.mgmt_admin_role.value]
     service_details = [
