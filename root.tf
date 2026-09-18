@@ -18,6 +18,7 @@ locals {
   aws_backup_role_name      = module.tdr_configuration.terraform_config.mgmt["local_account_backup_role_name"]
   aws_backup_tag            = module.tdr_configuration.terraform_config["aws_backup_daily_short_term_retain_tag"]
   aws_backup_local_role_arn = "arn:aws:iam::${data.aws_ssm_parameter.mgmt_account_number.value}:role/${local.aws_backup_role_name}"
+  wiz_role_arns             = module.tdr_configuration.terraform_config.mgmt["wiz_role_arns"]
 }
 
 module "global_parameters" {
@@ -448,8 +449,9 @@ module "terraform_state_bucket_kms_key" {
       module.github_terraform_assume_role_prod.role.arn,
       data.aws_ssm_parameter.mgmt_admin_role.value
     ]
-    user_roles_decoupled = [local.aws_backup_local_role_arn]
-    ci_roles             = [data.aws_ssm_parameter.mgmt_admin_role.value]
+    user_roles_decoupled                = concat(local.wiz_role_arns, [local.aws_backup_local_role_arn])
+    persistent_resource_roles_decoupled = local.wiz_role_arns
+    ci_roles                            = [data.aws_ssm_parameter.mgmt_admin_role.value]
     service_details = [
       {
         service_name : "cloudwatch"
