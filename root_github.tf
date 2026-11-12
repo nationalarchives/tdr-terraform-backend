@@ -35,7 +35,7 @@ module "github_ecr_policy_sbox" {
 module "github_actions_code_bucket_policy" {
   source        = "./tdr-terraform-modules/iam_policy"
   name          = "TDRGithubActionsBackendCodeMgmt"
-  policy_string = templatefile("${path.module}/templates/iam_policy/github_code_bucket.json.tpl", {})
+  policy_string = templatefile("${path.module}/templates/iam_policy/github_code_bucket.json.tpl", { bucket_name = module.backend_code_s3.s3_bucket_name })
 }
 
 module "github_actions_role" {
