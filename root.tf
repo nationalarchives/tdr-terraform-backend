@@ -400,6 +400,7 @@ module "notifications_topic" {
 module "notification_lambda" {
   source                        = "./tdr-terraform-modules/lambda"
   common_tags                   = local.common_tags
+  runtime                       = "java${module.global_parameters.lambda_java_runtimes["notification-service"]}"
   project                       = "tdr"
   lambda_ecr_scan_notifications = true
   event_rule_arns = [
@@ -426,6 +427,7 @@ module "periodic_ecr_image_scan_lambda" {
   common_tags                       = local.common_tags
   project                           = "tdr"
   lambda_ecr_scan                   = true
+  runtime                           = "java${module.global_parameters.lambda_java_runtimes["ecr-scan"]}"
   periodic_ecr_image_scan_event_arn = module.periodic_ecr_image_scan_event.event_arn
 }
 
