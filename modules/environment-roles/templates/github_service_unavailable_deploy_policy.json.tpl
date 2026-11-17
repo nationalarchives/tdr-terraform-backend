@@ -5,6 +5,7 @@
                 "elasticloadbalancing:DescribeLoadBalancers",
                 "elasticloadbalancing:DescribeListeners",
                 "elasticloadbalancing:DescribeTargetGroups",
+                "elasticloadbalancing:DescribeTags",
                 "elasticloadbalancing:ModifyListener",
                 "elasticloadbalancing:DescribeRules",
                 "elasticloadbalancing:ModifyRule"
